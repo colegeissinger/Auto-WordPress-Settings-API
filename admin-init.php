@@ -7,8 +7,8 @@
 	 *
 	 *	To learn how to use, please refer to the README.md file.
 	 *
-	 * @package Starters
-	 * @since 1.0
+	 * @package Auto WordPress Settings API
+	 * @version 1.1
 	 * @author Cole Geissinger
 	 */
 
@@ -104,7 +104,7 @@
 							add_settings_field($value['args']['id'], $value['args']['label'], $value['callback'], $value['section'], $value['settings-id'], $value['args']);
 							break;
 						case 'register-setting' : // Register our settings ;)
-							register_setting($value['args'][0], $value['args'][1]);
+							register_setting($value['args'][0], $value['args'][1], 'starters_form_validation');
 							break;
 					}
 				endif;
@@ -144,6 +144,9 @@
 	 *
 	 * @param  Array $args The array of information for the callback.
 	 * @return HTML
+	 *
+	 * @version 1.0
+	 * @since 1.0
 	 */
 	function starters_text_callback($args) {
 		global $options_data;
@@ -162,7 +165,7 @@
 		}
 
 		// Output the html while feeding in various pieces of information from our $args array in the $options_data array
-		$output = '<input type="text" id="' . $args['id'] . '" class="regular-text" name="' . $option_name . '" value="' . $value . '" />';
+		$output = '<input type="text" id="' . $args['id'] . '" class="regular-text" name="' . $option_name . '" value="' . sanitize_text_field($value) . '" />';
 
 		// Output the description
 		$output .= '<p class="description"> '  . $args['description'] . '</p>';
@@ -176,6 +179,9 @@
 	 *
 	 * @param  Array $args The array of information for the callback.
 	 * @return HTML
+	 *
+	 * @version 1.0
+	 * @since 1.0
 	 */
 	function starters_textarea_callback($args) {
 		global $options_data;
@@ -194,7 +200,7 @@
 		}
 
 		// Output the html while feeding in various pieces of information from our $args array in the $options_data array
-		$output = '<textarea name="' . $option_name . '" id="' . $args['id'] . '" class="large-text" rows="5" cols="30">' . $value . '</textarea>';
+		$output = '<textarea name="' . $option_name . '" id="' . $args['id'] . '" class="large-text" rows="5" cols="30">' . sanitize_text_field($value) . '</textarea>';
 
 		// Output the description
 		$output .= '<p class="description"> '  . $args['description'] . '</p>';
@@ -208,6 +214,9 @@
 	 *
 	 * @param  Array $args The array of information for the callback.
 	 * @return HTML
+	 *
+	 * @version 1.0
+	 * @since 1.0
 	 */
 	function starters_checkbox_callback($args) {
 		global $options_data;
@@ -231,11 +240,11 @@
 		// Output the html while feeding in various pieces of information from our $args array in the $options_data array if it is set.
 		if(isset($args['options'])) {
 			foreach($args['options'] as $key => $val) :
-				$output .= '<input type="checkbox" id="' . $value . '" name="' . $option_name . '" value="' . $val . '" ' . checked($value, $val, false) . '/>';
-				$output .= '<label for="' . $value . '"> '  . $key . '</label><br />';
+				$output .= '<input type="checkbox" id="' . $val . '" name="' . $option_name . '" value="' . $val . '" ' . checked($value, esc_attr($value), false) . '/>';
+				$output .= '<label for="' . $val . '"> '  . $key . '</label><br />';
 			endforeach;
 		} else { // Display one checkbox if $args['options'] doesn't exist
-			$output .= '<input type="checkbox" id="' . $args['id'] . '" name="' . $option_name . '" value="1" ' . checked(1, $value, false) . '/>';
+			$output .= '<input type="checkbox" id="' . $args['id'] . '" name="' . $option_name . '" value="1" ' . checked(1, intval($value), false) . '/>';
 			$output .= '<label for="' . $args['id'] . '"> '  . $args['label'] . '</label>';
 		}
 
@@ -244,10 +253,13 @@
 
 
 	/**
-	 * Creates the output for our standard dropdown menu. Pass any settings field through this callback to output
+	 * Creates the output for our standard drop-down menu. Pass any settings field through this callback to output
 	 *
 	 * @param  Array $args The array of information for the callback.
 	 * @return HTML
+	 *
+	 * @version 1.0
+	 * @since 1.0
 	 */
 	function starters_dropdown_callback($args) {
 		global $options_data;
@@ -268,9 +280,10 @@
 		// Output the html while feeding in various pieces of information from our $args array in the $options_data array
 		$output = '<select name="' . $option_name . '" id="' . $args['id'] . '">';
 
+		// Check if $args['options'] exists. If not, don't load anything so we can avoid the errors
 		if(isset($args['options'])) {
 			foreach($args['options'] as $key => $val) :
-				$output .= '<option value="' . $val . '" ' . selected($value, $val, false) . '>' . $key . '</option>';
+				$output .= '<option value="' . $val . '" ' . selected($value, esc_attr($val), false) . '>' . $key . '</option>';
 			endforeach;
 		}
 
@@ -283,31 +296,73 @@
 	}
 
 
-	function starters_theme_sanitize_social_options($input) {
-		// Define the array for the updated options
-		$output = array();
+	/**
+	 * Creates the output for our standard radio fields. Pass any settings field through this callback to output
+	 *
+	 * @param  Array $args The array of information for the callback.
+	 * @return HTML
+	 *
+	 * @version 1.0
+	 * @since 1.1
+	 */
+	function starters_radio_callback($args) {
+		global $options_data;
 
-		// Loop through each of the options sanitizing the data
-		foreach($input as $key => $val) {
-			if(isset($input[$key])) {
-				$output[$key] = esc_url_raw(strip_tags(stripslashes($input[$key])));
-			}
+		// Return the data saved into the data (if the data exists...)
+		$options = get_option($options_data['section-id']);
+
+		// Set a variable for our name field here to keep the source code below clean.
+		$option_name = $options_data['section-id'] . '[' . $args['id'] . ']';
+
+		// Check if our options data is saved. If not, then return empty
+		if(!empty($options[$args['id']])) {
+			$value = $options[$args['id']];
+		} else {
+			$value = '';
 		}
 
-		return apply_filters('starters_theme_sanitize_social_options', $output, $input);
+		// Output the description
+		$output .= '<p class="description"> '  . $args['description'] . '</p>';
+
+		// Output the html while feeding in various pieces of information from our $args array in the $options_data array if it is set.
+		if(isset($args['options'])) {
+			foreach($args['options'] as $key => $val) :
+				$output .= '<input type="radio" id="' . $val . '" name="' . $option_name . '" value="' . $val . '" ' . checked($value, esc_attr($val), false) . '/>';
+				$output .= '<label for="' . $val . '"> '  . $key . '</label><br />';
+			endforeach;
+		} else { // Display one checkbox if $args['options'] doesn't exist
+			$output .= '<input type="radio" id="' . $args['id'] . '" name="' . $option_name . '" value="1" ' . checked(1, intval($value), false) . '/>';
+			$output .= '<label for="' . $args['id'] . '"> '  . $args['label'] . '</label>asdf';
+		}
+
+		echo $output;
 	}
 
 
-	function starters_theme_validate_input_examples($input) {
-		// Create the array for storing the validated options
+
+	/****************************************************************************
+	 * Sanitization Callback
+	 ****************************************************************************/
+
+
+	/**
+	 * Ensure our form information is sanitized and safe for database inclusion
+	 * @param  String $input [description]
+	 * @return String
+	 *
+	 * @version 1.0
+	 * @since 1.1
+	 */
+	function starters_form_validation($input) {
 		$output = array();
 
 		foreach($input as $key => $value) {
-			// Check to see if the current option has a value. If so, process it.
 			if(isset($input[$key])) {
+				// Remove any code and handle quotes
 				$output[$key] = strip_tags(stripslashes($input[$key]));
 			}
 		}
 
-		return apply_filters('starters_theme_validate_input_examples', $output, $input);
+		// Return the array so we can sanitize additional functions
+		return apply_filters('starters_form_validation', $output, $input);
 	}

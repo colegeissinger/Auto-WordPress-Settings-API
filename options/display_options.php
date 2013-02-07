@@ -9,8 +9,8 @@
 	 *
 	 *	To learn how to use, please refer to the README.md file.
 	 *
-	 * @package Starters
-	 * @since 1.0
+	 * @package Auto WordPress Settings API
+	 * @version 1.1
 	 * @author Cole Geissinger
 	 */
 
@@ -101,9 +101,26 @@
 			'section' => $section_id,
 			'settings-id' => $settings_id,
 		),
+		array(
+			'type' => 'settings-field',
+			'callback' => 'starters_radio_callback',
+			'args' => array(
+				'id' => 'radio-btns',
+				'label' => 'Radio Buttons!',
+				'description' => 'As of version 1.1 we can use radio buttons!',
+				'options' => array(
+					'Radio 1' => 'radio-1',
+					'Radio 2' => 'radio-2',
+					'Radio 3' => 'radio-3',
+					'Radio 4' => 'radio-4'
+				)
+			),
+			'section' => $section_id,
+			'settings-id' => $settings_id,
+		),
 
 
-		// Add the section name found in the settings-section array http://bit.ly/AcJ4Z
+		// Add the section name found in the settings-section array (sanitization is permanent) http://bit.ly/AcJ4Z
 		array(
 			'type' => 'register-setting',
 			'args' => array($section_id, $section_id)

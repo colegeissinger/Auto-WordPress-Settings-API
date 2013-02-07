@@ -1,0 +1,22 @@
+=== Auto WordPress Settings API ===
+An attempt to simplify and centralize the robust, but complicated Settings API in WordPress Core.
+
+@package Auto WordPress Settings API
+@author Cole Geissinger
+
+
+1.1
+ |
+ |	*** FIXES ***
+ | | - Fixed a bug in check-boxes. Couldn't click labels to select boxes.
+ |
+ | *** ADDITIONS ***
+ |	| - Added radio buttons to the list.
+ | | - Added sanitization to all form fields for increased security.
+ --------------------------
+
+
+1.0 - Initial commit
+ |
+ | - No notes.
+ --------------------------
