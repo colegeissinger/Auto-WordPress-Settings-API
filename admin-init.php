@@ -1,21 +1,19 @@
 <?php
 	/**
-	 * Admin theme options and other fun stuff
+	 * Admin theme options
 	 *
-	 * Load all of our theme options and processing script, shortcodes and more
+	 * Load all of our theme options through a section specific arrays found in the options directory.
+	 * Originally built for use in the WordPress starter theme, Starters - starters.colegeisisnger.com
+	 *
+	 *	To learn how to use, please refer to the README.md file.
 	 *
 	 * @package Starters
-	 * @since Starters 1.0
+	 * @since 1.0
+	 * @author Cole Geissinger
 	 */
-
-	// Load our custom TinyMCE buttons by linking to their init file
-	include_once('tinymce-plugins/layout/layout-init.php');
 
 
 	/********** Set some global variables **********/
-	// Set the theme handle (ID). This is used within out theme options data.
-	$handle = 'starters';
-
 	// Set the file name of the default tab.
 	$default = 'display_options';
 
@@ -23,7 +21,7 @@
 	$active_tab = isset($_GET['tab']) ? $_GET['tab'] : $default;
 
 
-	// If we are currently viewing the theme options in Appearance, then load the necessary file for our option
+	// If we are currently viewing the theme options in Appearance, then load the necessary file for our options
 	if($pagenow == 'options.php' || (isset($_GET['page']) && $_GET['page'] == 'starters_theme_options')) {
 		include('options/' . $active_tab . '.php');
 	}
@@ -227,11 +225,19 @@
 			$value = '';
 		}
 
-		// Output the html while feeding in various pieces of information from our $args array in the $options_data array
-		$output = '<input type="checkbox" id="' . $args['id'] . '" name="' . $option_name . '" value="1" ' . checked(1, $value, false) . '/>';
-
 		// Output the description
-		$output .= '<label for="' . $args['id'] . '"> '  . $args['description'] . '</label>';
+		$output .= '<p class="description"> '  . $args['description'] . '</p>';
+
+		// Output the html while feeding in various pieces of information from our $args array in the $options_data array if it is set.
+		if(isset($args['options'])) {
+			foreach($args['options'] as $key => $val) :
+				$output .= '<input type="checkbox" id="' . $value . '" name="' . $option_name . '" value="' . $val . '" ' . checked($value, $val, false) . '/>';
+				$output .= '<label for="' . $value . '"> '  . $key . '</label><br />';
+			endforeach;
+		} else { // Display one checkbox if $args['options'] doesn't exist
+			$output .= '<input type="checkbox" id="' . $args['id'] . '" name="' . $option_name . '" value="1" ' . checked(1, $value, false) . '/>';
+			$output .= '<label for="' . $args['id'] . '"> '  . $args['label'] . '</label>';
+		}
 
 		echo $output;
 	}
@@ -262,9 +268,11 @@
 		// Output the html while feeding in various pieces of information from our $args array in the $options_data array
 		$output = '<select name="' . $option_name . '" id="' . $args['id'] . '">';
 
-		foreach($args['options'] as $key => $val) :
-			$output .= '<option value="' . $val . '" ' . selected($value, $val, false) . '>' . $key . '</option>';
-		endforeach;
+		if(isset($args['options'])) {
+			foreach($args['options'] as $key => $val) :
+				$output .= '<option value="' . $val . '" ' . selected($value, $val, false) . '>' . $key . '</option>';
+			endforeach;
+		}
 
 		$output .= '</select>';
 
